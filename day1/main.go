@@ -14,6 +14,7 @@ func main() {
 	rotations := getInput()
 
 	fmt.Println(task1(rotations))
+	fmt.Println(task2(rotations))
 }
 
 func task1(rotations []Rotation) int {
@@ -22,24 +23,77 @@ func task1(rotations []Rotation) int {
 	timesAtZero := 0
 
 	for _, rotation := range rotations {
-		var newPosition int
+		newPosition, _ := getNewPosition(currentPosition, rotation.Direction, rotation.Steps)
 
-		switch rotation.Direction {
-		case DirectionLeft:
-			newPosition = currentPosition - rotation.Steps
-		case DirectionRight:
-			newPosition = currentPosition + rotation.Steps
-		}
-
-		currentPosition = newPosition % 100
-
-		if currentPosition == 0 {
+		if newPosition == 0 {
 			timesAtZero++
 		}
 
+		currentPosition = newPosition
 	}
 
 	return timesAtZero
+}
+
+func task2(rotations []Rotation) int {
+
+	currentPosition := 50
+	timesAtZero := 0
+
+	for _, rotation := range rotations {
+		newPosition, timesZeroDuring := getNewPosition(currentPosition, rotation.Direction, rotation.Steps)
+
+		if newPosition == 0 {
+			timesAtZero++
+		}
+
+		timesAtZero += timesZeroDuring
+		currentPosition = newPosition
+	}
+
+	return timesAtZero
+}
+
+func getNewPosition(currentPosition int, direction Direction, steps int) (int, int) {
+	timesZeroDuring := 0
+
+	for i := range steps {
+		newPosition := takeOneStep(currentPosition, direction)
+
+		if newPosition == 0 {
+			if i+1 < steps {
+				// only if not end pos
+				timesZeroDuring++
+			}
+		}
+
+		if newPosition < 0 {
+			currentPosition = 99
+			continue
+		}
+
+		if newPosition > 99 {
+			currentPosition = 0
+			if i+1 < steps {
+				// only if not end pos
+				timesZeroDuring++
+			}
+			continue
+		}
+
+		currentPosition = newPosition
+	}
+
+	return currentPosition, timesZeroDuring
+}
+
+func takeOneStep(currentPosition int, direction Direction) int {
+	switch direction {
+	case DirectionLeft:
+		return currentPosition - 1
+	default:
+		return currentPosition + 1
+	}
 }
 
 type Direction string
@@ -55,7 +109,7 @@ type Rotation struct {
 }
 
 func getInput() []Rotation {
-	filePath := "day1/example.txt"
+	filePath := "day1/input.txt"
 
 	file, err := os.Open(filePath)
 	if err != nil {

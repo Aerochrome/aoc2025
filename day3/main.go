@@ -12,6 +12,7 @@ import (
 func main() {
 	batteryBanks := getInput()
 	fmt.Println(task1(batteryBanks))
+	fmt.Println(task2(batteryBanks))
 }
 
 func task1(batteryBanks []BatteryBank) int {
@@ -19,6 +20,16 @@ func task1(batteryBanks []BatteryBank) int {
 	for _, batteryBank := range batteryBanks {
 		joltageSum += batteryBank.FindMaximumJoltage()
 	}
+	return joltageSum
+}
+
+func task2(batteryBanks []BatteryBank) int {
+	joltageSum := 0
+
+	for _, batteryBank := range batteryBanks {
+		joltageSum += batteryBank.FindMaximumJoltageVariable(12)
+	}
+
 	return joltageSum
 }
 
@@ -46,6 +57,43 @@ func (bb BatteryBank) FindMaximumJoltage() int {
 	}
 
 	return int(highestJoltage)
+}
+
+func (bb BatteryBank) FindMaximumJoltageVariable(digitLen int) int {
+	startIdx := 0
+
+	resultDigits := ""
+
+	for i := range digitLen {
+		suffixLen := digitLen - (i + 1)
+		highestNumberIdx := bb.FindMaximumNumberPosition(startIdx, suffixLen)
+		resultDigits += strconv.Itoa(int(bb[startIdx+highestNumberIdx]))
+
+		startIdx += highestNumberIdx + 1
+	}
+
+	result, err := strconv.Atoi(resultDigits)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return result
+}
+
+func (bb BatteryBank) FindMaximumNumberPosition(startIdx int, suffixLen int) int {
+	endIdx := len(bb) - suffixLen
+
+	highestNumber := Battery(0)
+	highestNumberIdx := 0
+
+	for idx, battery := range bb[startIdx:endIdx] {
+		if battery > highestNumber {
+			highestNumber = battery
+			highestNumberIdx = idx
+		}
+	}
+
+	return highestNumberIdx
 }
 
 func getInput() []BatteryBank {
